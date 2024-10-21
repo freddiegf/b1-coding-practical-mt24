@@ -98,13 +98,16 @@ class ClosedLoop:
         positions = np.zeros((T, 2))
         actions = np.zeros(T)
         self.plant.reset_state()
+        aggregated_error = 0
 
         for t in range(T):
             positions[t] = self.plant.get_position()
             observation_t = self.plant.get_depth()
             actions[t] = self.controller.compute(mission.reference[t], observation_t)
             self.plant.transition(actions[t], disturbances[t])
+            aggregated_error += np.abs(mission.reference[t] - observation_t)
 
+        print(f"Aggregated error: {aggregated_error}")
         return Trajectory(positions)
         
     def simulate_with_random_disturbances(self, mission: Mission, variance: float = 0.5) -> Trajectory:
